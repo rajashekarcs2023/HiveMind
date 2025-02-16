@@ -1,10 +1,53 @@
 // app/hive-intelligence/page.tsx
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Send, TrendingUp, Filter, Calendar } from 'lucide-react';
 
+interface Discussion {
+  student: string;
+  topic: string;
+  discussion: string;
+  similarity: number;
+}
+
 export default function HiveIntelligence() {
+  const [thought, setThought] = useState('');
+  const [similarDiscussions, setSimilarDiscussions] = useState<Discussion[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleShare = async () => {
+    if (!thought.trim()) return;
+
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        mode: 'cors',
+        body: JSON.stringify({
+          query: thought,
+          limit: 5
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const discussions = await response.json();
+      setSimilarDiscussions(discussions);
+    } catch (error) {
+      console.error('Error fetching similar discussions:', error);
+      alert('Failed to fetch similar discussions. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex gap-6 p-6">
       {/* Main Content - 70% */}
@@ -15,44 +58,41 @@ export default function HiveIntelligence() {
           <textarea 
             className="w-full p-4 rounded-lg border min-h-[120px] mb-2"
             placeholder="What's on your mind? Share your ideas, questions, or experiences..."
+            value={thought}
+            onChange={(e) => setThought(e.target.value)}
           />
-          <button className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+          <button 
+            className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            onClick={handleShare}
+            disabled={isLoading || !thought.trim()}
+          >
             <Send size={16} />
-            Share
+            {isLoading ? 'Sharing...' : 'Share'}
           </button>
         </div>
 
-        {/* Similar Discussions with Custom Scrollbar */}
+        {/* Similar Discussions */}
         <div>
           <h3 className="text-xl font-semibold mb-4">Similar Discussions</h3>
-          
-          <div 
-            className="h-[calc(100vh-280px)] overflow-y-auto"
-            style={{
-              overflowY: 'auto',
-              paddingRight: '16px',
-              marginRight: '-16px'
-            }}
-          >
-            {/* Discussion Cards */}
-            <div className="space-y-4">
-              {[1,2,3,4,5,6].map((_, index) => (
-                <div key={index} className="bg-white rounded-lg p-4 shadow-sm">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <span className="font-medium">Alice Chen</span>
-                      <p className="text-gray-600 mt-1">
-                        "I'm thinking of using vector search for a hackathon project to help with study group matching..."
-                      </p>
-                    </div>
-                    <span className="text-sm text-purple-600">95% similar</span>
+          <div className="space-y-4">
+            {similarDiscussions.map((discussion, index) => (
+              <div key={index} className="bg-white rounded-lg p-4 shadow-sm">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="font-medium">{discussion.student}</span>
+                    <p className="text-gray-600 mt-1">
+                      {discussion.discussion}
+                    </p>
                   </div>
-                  <div className="mt-4 text-sm text-gray-500">
-                    Posted in Advanced Data Structures • 2 days ago
-                  </div>
+                  <span className="text-sm text-purple-600">
+                    {Math.round(discussion.similarity * 100)}% similar
+                  </span>
                 </div>
-              ))}
-            </div>
+                <div className="mt-4 text-sm text-gray-500">
+                  Posted in {discussion.topic}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

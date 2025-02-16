@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { ChatHistory, ChatInput, ChatWindow, NotesContext, SubjectsList } from '@/components/ai';
-import { Subject, Note } from '@/types';
+import { Subject } from '@/types';
 import Split from 'react-split';
 
 interface Message {
@@ -11,36 +11,20 @@ interface Message {
   content: string;
   role: 'user' | 'assistant';
   timestamp: Date;
-  relatedNotes?: string[];
+  relatedNotes?: ContextItem[];
+}
+
+interface ContextItem {
+  text: string;
+  id: string;
+  score: number;
 }
 
 export default function AIAssistantPage() {
   const { data: session } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeNotes, setActiveNotes] = useState<string[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-
-  useEffect(() => {
-    const fetchSubjects = async () => {
-      try {
-        const response = await fetch('/api/subjects', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        const data = await response.json();
-        setSubjects(data);
-      } catch (error) {
-        console.error('Error fetching subjects:', error);
-      }
-    };
-
-    if (session?.user?.id) {
-      fetchSubjects();
-    }
-  }, [session?.user?.id]);
+  const [activeNotes, setActiveNotes] = useState<ContextItem[]>([]);
 
   const handleSendMessage = async (content: string) => {
     setIsLoading(true);
@@ -53,31 +37,34 @@ export default function AIAssistantPage() {
       };
       setMessages(prev => [...prev, userMessage]);
 
-      const response = await fetch('/api/ai/query-notes', {
+      const response = await fetch('/api/ai/chat', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           query: content,
           userId: session?.user?.id,
-          context: {
-            recentTopics: session?.user?.recentTopics,
-            currentSubject: session?.user?.currentSubject
-          }
         })
       });
 
-      const { answer, citedNotes } = await response.json();
-      setActiveNotes(citedNotes);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const { answer, context } = await response.json();
+      setActiveNotes(context);
 
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         content: answer,
         role: 'assistant',
         timestamp: new Date(),
-        relatedNotes: citedNotes
+        relatedNotes: context
       };
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Error querying notes:', error);
+      console.error('Error in chat:', error);
     } finally {
       setIsLoading(false);
     }
@@ -93,7 +80,6 @@ export default function AIAssistantPage() {
       {/* Left sidebar */}
       <div className="border-r h-screen overflow-y-auto">
         <SubjectsList 
-          subjects={subjects}
           onNoteSelect={(noteId) => {
             // Handle note selection
           }}
@@ -121,8 +107,9 @@ export default function AIAssistantPage() {
       <div className="border-l h-screen overflow-y-auto">
         <NotesContext 
           activeNotes={activeNotes}
-          onNoteClick={(noteId) => {
+          onNoteClick={(note) => {
             // Handle navigation to specific note
+            console.log('Note clicked:', note);
           }}
         />
       </div>

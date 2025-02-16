@@ -1,61 +1,81 @@
 // src/app/assessment/page.tsx
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+'use client';
 
-export default function AssessmentPage() {
-  const assessments = [
-    {
-      id: '1',
-      title: 'Data Structures Weekly Assessment',
-      dueDate: '2025-02-22',
-      status: 'pending',
-      course: 'CS201'
-    },
-    {
-      id: '2',
-      title: 'Physics Midterm',
-      dueDate: '2025-02-25',
-      status: 'upcoming',
-      course: 'PHY101'
-    }
-  ];
+import React from 'react';
+import { useRouter } from 'next/navigation';
+
+interface Subject {
+  id: string;
+  title: string;
+  description: string;
+  totalQuestions: number;
+  timeEstimate: string;
+  icon: string;
+}
+
+const subjects: Subject[] = [
+  {
+    id: 'newtons-laws',
+    title: "Newton's Laws of Motion",
+    description: "Test your understanding of the fundamental principles of motion and forces.",
+    totalQuestions: 5,
+    timeEstimate: "10-15 minutes",
+    icon: "🎯"
+  },
+  {
+    id: 'energy-work',
+    title: "Energy and Work",
+    description: "Assess your knowledge of energy conservation, work, and power.",
+    totalQuestions: 5,
+    timeEstimate: "10-15 minutes",
+    icon: "⚡"
+  },
+  {
+    id: 'momentum',
+    title: "Momentum and Collisions",
+    description: "Evaluate your grasp of momentum conservation and collision analysis.",
+    totalQuestions: 5,
+    timeEstimate: "10-15 minutes",
+    icon: "🎱"
+  }
+];
+
+export default function AssessmentSelectionPage() {
+  const router = useRouter();
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Assessments</h1>
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-bold mb-4">Knowledge Assessments</h1>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Choose a subject to assess your understanding and get matched with study partners 
+            who complement your learning style.
+          </p>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {assessments.map((assessment) => (
-          <Card key={assessment.id}>
-            <CardHeader>
-              <CardTitle>{assessment.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Course</span>
-                  <span>{assessment.course}</span>
+        <div className="grid md:grid-cols-3 gap-6">
+          {subjects.map((subject) => (
+            <div 
+              key={subject.id}
+              className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => router.push(`/assessment/${subject.id}/intro`)}
+            >
+              <div className="p-6">
+                <div className="text-4xl mb-4">{subject.icon}</div>
+                <h2 className="text-xl font-semibold mb-2">{subject.title}</h2>
+                <p className="text-gray-600 mb-4">{subject.description}</p>
+                <div className="flex items-center justify-between text-sm text-gray-500">
+                  <span>{subject.totalQuestions} questions</span>
+                  <span>{subject.timeEstimate}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Due Date</span>
-                  <span>{new Date(assessment.dueDate).toLocaleDateString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Status</span>
-                  <span className={`px-2 py-1 rounded text-sm ${
-                    assessment.status === 'pending' 
-                      ? 'bg-yellow-100 text-yellow-700' 
-                      : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    {assessment.status}
-                  </span>
-                </div>
-                <button className="w-full mt-4 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
-                  Start Assessment
-                </button>
               </div>
-            </CardContent>
-          </Card>
-        ))}
+              <div className="bg-blue-50 p-4 text-center">
+                <span className="text-blue-600 font-medium">Start Assessment →</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

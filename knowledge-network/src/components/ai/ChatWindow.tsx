@@ -1,12 +1,17 @@
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
+
+interface ContextItem {
+  text: string;
+  id: string;
+  score: number;
+}
 
 interface Message {
   id: string;
   content: string;
   role: 'user' | 'assistant';
   timestamp: Date;
-  relatedNotes?: string[];
+  relatedNotes?: ContextItem[];
 }
 
 interface ChatWindowProps {
@@ -16,46 +21,29 @@ interface ChatWindowProps {
 
 export function ChatWindow({ messages, isLoading }: ChatWindowProps) {
   return (
-    <div className="p-4">
-      <div className="space-y-4">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${
-              message.role === 'user' ? 'justify-end' : 'justify-start'
-            }`}
-          >
-            <div
-              className={`max-w-[70%] rounded-lg p-4 ${
-                message.role === 'user'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-900'
-              }`}
-            >
-              <ReactMarkdown className="prose">
-                {message.content}
-              </ReactMarkdown>
-              {message.relatedNotes && message.relatedNotes.length > 0 && (
-                <div className="mt-2 text-sm">
-                  <p className="font-semibold">Related Notes:</p>
-                  <ul className="list-disc list-inside">
-                    {message.relatedNotes.map((note) => (
-                      <li key={note}>{note}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+    <div className="p-4 space-y-4">
+      {messages.map((message) => (
+        <div
+          key={message.id}
+          className={`p-4 rounded-lg ${
+            message.role === 'assistant' 
+              ? 'bg-blue-50 ml-4' 
+              : 'bg-gray-50 mr-4'
+          }`}
+        >
+          <p className="text-gray-800">{message.content}</p>
+          {message.relatedNotes && message.role === 'assistant' && (
+            <div className="mt-2 text-xs text-gray-500">
+              Sources: {message.relatedNotes.map(note => note.text).join(', ')}
             </div>
-          </div>
-        ))}
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-lg p-4">
-              <div className="animate-pulse">Thinking...</div>
-            </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      ))}
+      {isLoading && (
+        <div className="p-4 bg-gray-50 rounded-lg animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+        </div>
+      )}
     </div>
   );
 } 
