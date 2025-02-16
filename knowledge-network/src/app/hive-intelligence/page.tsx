@@ -22,44 +22,37 @@ export default function HiveIntelligence() {
           </button>
         </div>
 
-        {/* Similar Discussions with Scroll */}
-        <div className="h-[calc(100vh-280px)] overflow-y-auto pr-4">
+        {/* Similar Discussions with Custom Scrollbar */}
+        <div>
           <h3 className="text-xl font-semibold mb-4">Similar Discussions</h3>
           
-          {/* Discussion Cards */}
-          <div className="space-y-4">
-            {/* Example cards - will be mapped from real data */}
-            <div className="bg-white rounded-lg p-4 shadow-sm">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="font-medium">Alice Chen</span>
-                  <p className="text-gray-600 mt-1">
-                    "I'm thinking of using vector search for a hackathon project to help with study group matching..."
-                  </p>
+          <div 
+            className="h-[calc(100vh-280px)] overflow-y-auto"
+            style={{
+              overflowY: 'auto',
+              paddingRight: '16px',
+              marginRight: '-16px'
+            }}
+          >
+            {/* Discussion Cards */}
+            <div className="space-y-4">
+              {[1,2,3,4,5,6].map((_, index) => (
+                <div key={index} className="bg-white rounded-lg p-4 shadow-sm">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="font-medium">Alice Chen</span>
+                      <p className="text-gray-600 mt-1">
+                        "I'm thinking of using vector search for a hackathon project to help with study group matching..."
+                      </p>
+                    </div>
+                    <span className="text-sm text-purple-600">95% similar</span>
+                  </div>
+                  <div className="mt-4 text-sm text-gray-500">
+                    Posted in Advanced Data Structures • 2 days ago
+                  </div>
                 </div>
-                <span className="text-sm text-purple-600">95% similar</span>
-              </div>
-              <div className="mt-4 text-sm text-gray-500">
-                Posted in Advanced Data Structures • 2 days ago
-              </div>
+              ))}
             </div>
-
-            <div className="bg-white rounded-lg p-4 shadow-sm">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="font-medium">Bob Smith</span>
-                  <p className="text-gray-600 mt-1">
-                    "Just finished a project using embeddings to analyze study patterns. Found some interesting insights..."
-                  </p>
-                </div>
-                <span className="text-sm text-purple-600">82% similar</span>
-              </div>
-              <div className="mt-4 text-sm text-gray-500">
-                Posted in AI Applications • 1 week ago
-              </div>
-            </div>
-            
-            {/* Add more discussion cards */}
           </div>
         </div>
       </div>
