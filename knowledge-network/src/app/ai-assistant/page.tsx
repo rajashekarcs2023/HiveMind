@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { ChatHistory } from '@/components/ai/ChatHistory';
-import { ChatInput } from '@/components/ai/ChatInput';
-import { ChatWindow } from '@/components/ai/ChatWindow';
-import { NotesContext } from '@/components/ai/NotesContext';
+import { ChatHistory, ChatInput, ChatWindow, NotesContext, SubjectsList } from '@/components/ai';
+import { Subject, Note } from '@/types';
+import Split from 'react-split';
 
 interface Message {
   id: string;
@@ -20,6 +19,28 @@ export default function AIAssistantPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeNotes, setActiveNotes] = useState<string[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const response = await fetch('/api/subjects', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        const data = await response.json();
+        setSubjects(data);
+      } catch (error) {
+        console.error('Error fetching subjects:', error);
+      }
+    };
+
+    if (session?.user?.id) {
+      fetchSubjects();
+    }
+  }, [session?.user?.id]);
 
   const handleSendMessage = async (content: string) => {
     setIsLoading(true);
@@ -63,15 +84,25 @@ export default function AIAssistantPage() {
   };
 
   return (
-    <div className="flex h-screen">
-      {/* Left sidebar with chat history */}
-      <div className="w-64 border-r">
-        <ChatHistory messages={messages} />
+    <Split 
+      className="flex h-screen overflow-hidden bg-white"
+      sizes={[20, 50, 30]}
+      minSize={[200, 400, 250]}
+      gutterSize={4}
+    >
+      {/* Left sidebar */}
+      <div className="border-r h-screen overflow-y-auto">
+        <SubjectsList 
+          subjects={subjects}
+          onNoteSelect={(noteId) => {
+            // Handle note selection
+          }}
+        />
       </div>
 
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col">
-        <div className="flex-1 overflow-y-auto p-4">
+      <div className="h-screen flex flex-col">
+        <div className="flex-1 overflow-y-auto">
           <ChatWindow 
             messages={messages}
             isLoading={isLoading}
@@ -86,8 +117,8 @@ export default function AIAssistantPage() {
         </div>
       </div>
 
-      {/* Right sidebar showing relevant notes context */}
-      <div className="w-96 border-l">
+      {/* Right sidebar */}
+      <div className="border-l h-screen overflow-y-auto">
         <NotesContext 
           activeNotes={activeNotes}
           onNoteClick={(noteId) => {
@@ -95,6 +126,6 @@ export default function AIAssistantPage() {
           }}
         />
       </div>
-    </div>
+    </Split>
   );
 }
