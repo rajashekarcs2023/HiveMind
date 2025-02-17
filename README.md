@@ -1,4 +1,4 @@
-# knowledge-network
+# HiveMind
 ### **🚀 Data Points: What Really Matters for Learning & Vector Search?**
 Our system plan is to **captures true learning states, mental models, and progressions** and store them as vector embeddings.
 
